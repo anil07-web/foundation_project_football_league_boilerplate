@@ -73,6 +73,7 @@ class PlayerDaoImplTests {
             player.setTeamTitle("Hiphop");
     }
 
+
     @Test
     @Order(6)
     public void givenNonExistingOrEmptyPlayerIdThenThrowException() {

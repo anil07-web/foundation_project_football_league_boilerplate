@@ -1,12 +1,21 @@
 package com.stackroute.oops.league.service;
 
+import com.stackroute.oops.league.dao.PlayerDao;
+import com.stackroute.oops.league.dao.PlayerDaoImpl;
+import com.stackroute.oops.league.dao.PlayerTeamDao;
+import com.stackroute.oops.league.dao.PlayerTeamDaoImpl;
 import com.stackroute.oops.league.exception.PlayerAlreadyAllottedException;
 import com.stackroute.oops.league.exception.PlayerAlreadyExistsException;
 import com.stackroute.oops.league.exception.PlayerNotFoundException;
 import com.stackroute.oops.league.exception.TeamAlreadyFormedException;
 import com.stackroute.oops.league.model.Player;
+import com.stackroute.oops.league.model.PlayerTeam;
 
+import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class implements leagueTeamService
@@ -14,19 +23,26 @@ import java.util.List;
  */
 public class LeagueTeamServiceImpl implements LeagueTeamService {
 
+      PlayerDao playerDao;
+      PlayerTeamDao playerTeamDao;
+      List<Player> registeredPlayerList;
+      Set<PlayerTeam> playerTeamSet;
 
     /**
      * Constructor to initialize playerDao, playerTeamDao
      * empty ArrayList for registeredPlayerList and empty TreeSet for playerTeamSet
      */
     public LeagueTeamServiceImpl() {
-
+        playerDao=new PlayerDaoImpl();
+        playerTeamDao=new PlayerTeamDaoImpl();
+        registeredPlayerList=new ArrayList<>();
+        playerTeamSet=new TreeSet<>();
     }
 
     //Add player data to file using PlayerDao object
     @Override
     public boolean addPlayer(Player player) throws PlayerAlreadyExistsException {
-        return false;
+                return playerDao.addPlayer(player);
     }
 
     /**
@@ -41,8 +57,28 @@ public class LeagueTeamServiceImpl implements LeagueTeamService {
     @Override
     public synchronized String registerPlayerToLeague(String playerId, String password, LeagueTeamTitles teamTitle)
             throws PlayerNotFoundException, TeamAlreadyFormedException, PlayerAlreadyAllottedException {
-
-        return null;
+        List<Player> players = playerDao.getAllPlayers();
+        if (players.isEmpty()){
+            return null;
+        }
+        Player player = playerDao.findPlayer(playerId) ;
+        if (player.getPassword().equals(password)){
+            if (playerTeamDao.getAllPlayerTeams().stream().anyMatch(s->(s.getPlayerId().equals(playerId)&&s.getTeamTitle()== null))||(!playerTeamDao.getAllPlayerTeams().stream().anyMatch(s->s.getPlayerId().equals(playerId)))){
+                if (playerTeamDao.getPlayerSetByTeamTitle(String.valueOf(teamTitle)).stream().count()<11){
+                    player.setTeamTitle(String.valueOf(teamTitle));
+                    registeredPlayerList.add(player);
+                    playerTeamSet.add(new PlayerTeam(playerId,String.valueOf(teamTitle)));
+                    return "Registered";
+                }
+                else {
+                    throw new TeamAlreadyFormedException("Team Already Formed");
+                }
+            }else {
+                throw new PlayerAlreadyAllottedException("Player is already allotted to team");
+            }
+        }else {
+            return "Invalid credentials";
+        }
     }
 
     /**
@@ -50,7 +86,7 @@ public class LeagueTeamServiceImpl implements LeagueTeamService {
      */
     @Override
     public List<Player> getAllRegisteredPlayers() {
-        return null;
+        return registeredPlayerList;
     }
 
 
@@ -59,7 +95,7 @@ public class LeagueTeamServiceImpl implements LeagueTeamService {
      */
     @Override
     public int getExistingNumberOfPlayersInTeam(LeagueTeamTitles teamTitle) {
-        return 0;
+        return playerTeamDao.getPlayerSetByTeamTitle(String.valueOf(teamTitle)).toArray().length;
     }
 
     /**
@@ -74,7 +110,34 @@ public class LeagueTeamServiceImpl implements LeagueTeamService {
     @Override
     public String allotPlayersToTeam(String adminName, String password, LeagueTeamTitles teamTitle)
             throws TeamAlreadyFormedException, PlayerNotFoundException {
-        return null;
+
+        if(AdminCredentials.admin.equals(adminName)&&AdminCredentials.password.equals(password)){
+            List<Player> playerList = playerDao.getAllPlayers();
+            if(playerList.isEmpty()){
+                return "No player is registered";
+            }
+            int count = 0;
+            for (Player player:playerList) {
+                if (player.getTeamTitle()==null)
+                    continue;
+                if (player.getTeamTitle().equalsIgnoreCase(teamTitle.getValue())){
+                    count++;
+                }
+            }
+            if (count>=11)
+                throw new TeamAlreadyFormedException("Team already formed");
+
+            for (Player player: playerList) {
+                if (player.getTeamTitle()==null)
+                {
+                    player.setTeamTitle(String.valueOf(teamTitle));
+                    playerTeamDao.addPlayerToTeam(player);
+                }
+            }
+            return "Players allotted to teams";
+        }else {
+            return "Invalid credentials for admin";
+        }
     }
 
 

@@ -4,33 +4,47 @@ package com.stackroute.oops.league.model;
  * This class contains five fields playerId,playerName,password,yearExpr and teamTitle
  * It is a subclass of Comparable interface
  */
-public class Player extends Thread implements Comparable {
+public class Player extends Thread implements Comparable<Player>{
+
+    private String playerId;
+    private String playerName;
+    private String password;
+    private int yearExpr;
+    private String teamTitle;
     //Parameterized Constructor to initialize all properties
     public Player(String playerId, String playerName, String password, int yearExpr) {
+        this.playerId=playerId;
+        this.playerName=playerName;
+        this.password=password;
+        this.yearExpr=yearExpr;
     }
 
     public String getPlayerId() {
-        return null;
+        return playerId;
     }
 
     public String getPlayerName() {
-        return null;
+        return playerName;
     }
 
     public String getPassword() {
-        return null;
+        return password;
     }
 
     public int getYearExpr() {
-        return 0;
+        return yearExpr;
     }
 
     //Return teamTitle if it is present and not empty
     public String getTeamTitle() {
-        return null;
+        if(teamTitle!=null && teamTitle!=""){
+            return teamTitle;
+        }
+       return null;
     }
 
     public void setTeamTitle(String teamTitle) {
+        this.teamTitle=teamTitle;
     }
 
     /**
@@ -40,7 +54,21 @@ public class Player extends Thread implements Comparable {
      */
     @Override
     public String toString() {
-        return null;
+        if (teamTitle==null){
+            return "player{" +
+                    "playerId=" + playerId  +
+                    ", playerName=" + playerName  +
+                    ", yearExpr=" + yearExpr +
+                    "}";
+        }
+        else {
+            return "player{" +
+                    "playerId=" + playerId +
+                    ", playerName=" + playerName +
+                    ", yearExpr=" + yearExpr +
+                    ", teamTitle=" + teamTitle +
+                    "}";
+        }
     }
 
     //Overridden equals method
@@ -57,8 +85,7 @@ public class Player extends Thread implements Comparable {
 
     //compares player object based on playerId
     @Override
-    public int compareTo(Object o) {
-        return 0;
+    public int compareTo(Player player){
+        return this.playerId.compareTo(player.getPlayerId());
     }
-
 }

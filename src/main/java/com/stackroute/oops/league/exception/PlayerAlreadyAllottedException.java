@@ -1,5 +1,7 @@
 package com.stackroute.oops.league.exception;
 
-public class PlayerAlreadyAllottedException {
-    
+public class PlayerAlreadyAllottedException extends RuntimeException {
+    public PlayerAlreadyAllottedException(String message) {
+        super(message);
+    }
 }
